@@ -77,13 +77,13 @@ export default function Mapbox() {
         {markers.map((marker) => (
           <Marker longitude={marker.lng} latitude={marker.lat} anchor="bottom">
             <img
-              src="src/pinimage.webp"
+              src="src/pinimage.png"
               alt="pin"
               style={{
-                width: "50px", // Adjust size as needed
+                width: "50px",
                 height: "auto",
                 objectFit: "contain",
-                filter: "drop-shadow(0 0 2px rgba(0,0,0,0.3))", // Optional: adds a subtle shadow
+                filter: "drop-shadow(0 0 2px rgba(0,0,0,0.3))",
               }}
             />
           </Marker>
