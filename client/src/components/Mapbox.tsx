@@ -32,7 +32,6 @@ export default function Mapbox() {
     undefined
   );
 
-  const [markers, setMarkers] = useState<{ lat: number; lng: number }[]>([]);
 
   function onMapClick(e: MapLayerMouseEvent) {
     const newMarker = {

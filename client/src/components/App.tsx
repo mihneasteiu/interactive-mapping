@@ -1,4 +1,3 @@
-import { initializeApp } from "firebase/app";
 import "../styles/App.css";
 import MapsGearup from "./MapsGearup";
 import {
@@ -8,12 +7,23 @@ import {
   SignOutButton,
   UserButton,
 } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import pinsJson from "../geodata/pinpoint.json";
 
 // REMEMBER TO PUT YOUR API KEY IN A FOLDER THAT IS GITIGNORED!!
 // (for instance, /src/private/api_key.tsx)
 // import {API_KEY} from "./private/api_key"
 
 function App() {
+  const pinsStrings = pinsJson.pins;
+  const pins = pinsStrings.map((pin) => {lat: parseFloat(pin[0]), lng: parseFloat(pin[1])})
+  
+  const [markers, setMarkers] = useState<{ lat: number; lng: number }[]>([]);
+
+  const clearPins = () => {
+    setMarkers([]);
+  }
+
   return (
     <div className="App">
       <SignedOut>
@@ -39,7 +49,10 @@ function App() {
             <SignOutButton />
             <UserButton />
           </div>
-          <button />
+          <button
+          onClick={clearPins}>
+            Clear pins
+            </button>
           <MapsGearup />
         </div>
       </SignedIn>
