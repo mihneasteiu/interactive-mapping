@@ -39,6 +39,7 @@ function App() {
             <SignOutButton />
             <UserButton />
           </div>
+          <button />
           <MapsGearup />
         </div>
       </SignedIn>
