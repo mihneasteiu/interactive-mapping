@@ -1,5 +1,4 @@
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useEffect, useState } from "react";
 import Map, {
   Layer,
   MapLayerMouseEvent,
@@ -7,6 +6,14 @@ import Map, {
   ViewStateChangeEvent,
   Marker,
 } from "react-map-gl";
+import {
+  Dispatch,
+  SetStateAction,
+  useState,
+  KeyboardEvent,
+  useRef,
+  useEffect,
+} from "react";
 import { geoLayer, overlayData } from "../utils/overlay";
 
 const MAPBOX_API_KEY = process.env.MAPBOX_TOKEN;
@@ -19,6 +26,21 @@ export interface LatLong {
   long: number;
 }
 
+interface markerProps {
+  markers: {
+    lat: number;
+    lng: number;
+  }[];
+  setMarkers: Dispatch<
+    SetStateAction<
+      {
+        lat: number;
+        lng: number;
+      }[]
+    >
+  >;
+}
+
 // TODO: MAPS PART 1:
 // - fill out starting map state and add to viewState
 //
@@ -27,18 +49,17 @@ export interface LatLong {
 // };
 const initialZoom = 10;
 
-export default function Mapbox() {
+export default function Mapbox(props: markerProps) {
   const [overlay, setOverlay] = useState<GeoJSON.FeatureCollection | undefined>(
     undefined
   );
-
 
   function onMapClick(e: MapLayerMouseEvent) {
     const newMarker = {
       lat: e.lngLat.lat,
       lng: e.lngLat.lng,
     };
-    setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
+    props.setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
   }
 
   useEffect(() => {
@@ -74,7 +95,7 @@ export default function Mapbox() {
         <Source id="geo_data" type="geojson" data={overlay}>
           <Layer id={geoLayer.id} type={geoLayer.type} paint={geoLayer.paint} />
         </Source>
-        {markers.map((marker) => (
+        {props.markers.map((marker) => (
           <Marker longitude={marker.lng} latitude={marker.lat} anchor="bottom">
             <img
               src="src/pinimage.png"

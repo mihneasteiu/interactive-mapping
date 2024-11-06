@@ -1,5 +1,4 @@
 import "../styles/App.css";
-import MapsGearup from "./MapsGearup";
 import {
   SignedIn,
   SignedOut,
@@ -9,6 +8,7 @@ import {
 } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import pinsJson from "../geodata/pinpoint.json";
+import Mapbox from "./Mapbox";
 
 // REMEMBER TO PUT YOUR API KEY IN A FOLDER THAT IS GITIGNORED!!
 // (for instance, /src/private/api_key.tsx)
@@ -16,14 +16,12 @@ import pinsJson from "../geodata/pinpoint.json";
 
 function App() {
   const pinsStrings = pinsJson.pins;
-  const pins = pinsStrings.map((pin) => {lat: parseFloat(pin[0]), lng: parseFloat(pin[1])})
-  
-  const [markers, setMarkers] = useState<{ lat: number; lng: number }[]>([]);
+  const pins = pinsStrings.map((pin) => ({lat: parseFloat(pin[0]), lng: parseFloat(pin[1])}))
+  const [markers, setMarkers] = useState<{ lat: number; lng: number }[]>(pins);
 
   const clearPins = () => {
     setMarkers([]);
   }
-
   return (
     <div className="App">
       <SignedOut>
@@ -53,7 +51,7 @@ function App() {
           onClick={clearPins}>
             Clear pins
             </button>
-          <MapsGearup />
+          <Mapbox markers={markers} setMarkers={setMarkers}/>
         </div>
       </SignedIn>
     </div>
