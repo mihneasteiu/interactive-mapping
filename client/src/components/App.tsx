@@ -47,6 +47,7 @@ function App() {
             <SignOutButton />
             <UserButton />
           </div>
+          <h1>Sprint 5.1</h1>
           <button
           onClick={clearPins}>
             Clear pins
