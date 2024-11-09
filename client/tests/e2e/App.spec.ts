@@ -40,7 +40,7 @@ test("I see the pins on load", async ({ page }) => {
 test("Pins are cleared after clicking 'Clear Pins' button", async ({
   page,
 }) => {
-  const pins = page.locator("img[alt='pin']");
+  const pins = await page.locator("img[alt='pin']");
   await expect(pins).toHaveCount(15);
   const clearPinsButton = page.getByRole("button", { name: "Clear pins" });
   await clearPinsButton.click();
@@ -48,17 +48,23 @@ test("Pins are cleared after clicking 'Clear Pins' button", async ({
 });
 
 test("A new pin is added on random map click", async ({ page }) => {
-  const pins = page.locator("img[alt='pin']");
+  const pins = await page.locator("img[alt='pin']");
   const initialPinCount = await pins.count();
-  const map = page.locator(".map");
+  const map = await page.locator(".map");
   await map.click({ position: { x: 300, y: 300 } });
   await expect(pins).toHaveCount(initialPinCount + 1);
+  /*
+  const lastPin = pins.last();
+  const box = await lastPin.boundingBox();
+  expect(box?.x).toBeCloseTo(300, 0); // second argument is precision
+  expect(box?.y).toBeCloseTo(300, 0);
+  */
 });
 
 test("Add a pin on map click and clear all pins", async ({ page }) => {
-  const pins = page.locator("img[alt='pin']");
+  const pins = await page.locator("img[alt='pin']");
   const initialPinCount = await pins.count();
-  const map = page.locator(".map");
+  const map = await page.locator(".map");
   await map.click({ position: { x: 300, y: 300 } });
   await expect(pins).toHaveCount(initialPinCount + 1);
   const clearPinsButton = page.getByRole("button", { name: "Clear pins" });
