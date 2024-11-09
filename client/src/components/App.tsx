@@ -6,7 +6,7 @@ import {
   SignOutButton,
   UserButton,
 } from "@clerk/clerk-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import pinsJson from "../geodata/pinpoint.json";
 import Mapbox from "./Mapbox";
 
