@@ -39,20 +39,12 @@ interface markerProps {
       }[]
     >
   >;
+  overlay: GeoJSON.FeatureCollection | undefined;
 }
 
-// TODO: MAPS PART 1:
-// - fill out starting map state and add to viewState
-//
-// const ProvidenceLatLong: LatLong = {
-//   ...
-// };
 const initialZoom = 10;
 
 export default function Mapbox(props: markerProps) {
-  const [overlay, setOverlay] = useState<GeoJSON.FeatureCollection | undefined>(
-    undefined
-  );
 
   function onMapClick(e: MapLayerMouseEvent) {
     const newMarker = {
@@ -62,9 +54,6 @@ export default function Mapbox(props: markerProps) {
     props.setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
   }
 
-  useEffect(() => {
-    setOverlay(overlayData());
-  }, []);
 
   const [viewState, setViewState] = useState({
     longitude: -71.4128,
@@ -92,7 +81,7 @@ export default function Mapbox(props: markerProps) {
 
         onClick={(ev: MapLayerMouseEvent) => onMapClick(ev)}
       >
-        <Source id="geo_data" type="geojson" data={overlay}>
+        <Source id="geo_data" type="geojson" data={props.overlay}>
           <Layer id={geoLayer.id} type={geoLayer.type} paint={geoLayer.paint} />
         </Source>
         {props.markers.map((marker) => (
