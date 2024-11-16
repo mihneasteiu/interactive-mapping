@@ -40,6 +40,10 @@ interface markerProps {
     >
   >;
   overlay: GeoJSON.FeatureCollection | undefined;
+  setErrorFetching: Dispatch<
+    SetStateAction<string>
+  >;
+  user: string
 }
 
 const initialZoom = 10;
@@ -47,13 +51,10 @@ const initialZoom = 10;
 export default function Mapbox(props: markerProps) {
 
   function onMapClick(e: MapLayerMouseEvent) {
-    const newMarker = {
-      lat: e.lngLat.lat,
-      lng: e.lngLat.lng,
-    };
-    props.setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
+    const lat = e.lngLat.lat;
+    const lng = e.lngLat.lng;
+    addPins(String(lat), String(lng));
   }
-
 
   const [viewState, setViewState] = useState({
     longitude: -71.4128,
@@ -61,9 +62,47 @@ export default function Mapbox(props: markerProps) {
     zoom: initialZoom,
   });
 
-  // TODO: MAPS PART 5:
-  // - add the overlay useState
-  // - implement the useEffect to fetch the overlay data
+  const fetchPins = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3232/getPins"
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+      const pinsJson = await response.json();
+      if (pinsJson.response_type == "error") {
+        throw new Error(pinsJson.error);
+      }
+      const pinsStrings = pinsJson.pins;
+      const pins = pinsStrings.map((pin: string[]) => ({
+        lat: parseFloat(pin[0]),
+        lng: parseFloat(pin[1]),
+      }));
+      props.setMarkers(pins);
+      props.setErrorFetching("");
+    } catch (error) {
+      props.setErrorFetching("Error fetching pins data:" + error);
+    }
+  };
+
+  const addPins = async (ltd : string, lng : string) => {
+    try {
+      const response = await fetch(
+        "http://localhost:3232/addPins?uid=" + props.user + "&ltd=" + ltd + "&lng=" + lng
+      );
+      if (!response.ok) {
+        throw new Error("Failed to clear pins");
+      }
+      const resp = await response.json();
+      if (resp.response_type == "error") {
+        throw new Error(resp.error);
+      }
+      fetchPins();
+    } catch (error) {
+      props.setErrorFetching("Error clearing pins data:" + error);
+    }
+  };
 
   return (
     <div className="map">

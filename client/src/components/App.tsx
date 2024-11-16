@@ -5,35 +5,60 @@ import {
   SignInButton,
   SignOutButton,
   UserButton,
+  useUser
 } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
-import pinsJson from "../geodata/pinpoint.json";
 import Mapbox from "./Mapbox";
 import { overlayData } from "../utils/overlay";
 
-// REMEMBER TO PUT YOUR API KEY IN A FOLDER THAT IS GITIGNORED!!
-// (for instance, /src/private/api_key.tsx)
-// import {API_KEY} from "./private/api_key"
-
 function App() {
-  const pinsStrings = pinsJson.pins;
-  const pins = pinsStrings.map((pin) => ({
-    lat: parseFloat(pin[0]),
-    lng: parseFloat(pin[1]),
-  }));
+
+  const { user } = useUser();
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  const USER_ID = user.id;
+
   const [keyword, setKeyword] = useState("");
   const [errorFetching, setErrorFetching] = useState("");
   const [overlay, setOverlay] = useState<GeoJSON.FeatureCollection | undefined>(
     undefined
   );
-  const [markers, setMarkers] = useState<{ lat: number; lng: number }[]>(pins);
+  const [markers, setMarkers] = useState<{ lat: number; lng: number }[]>([]);
 
   const fetchData = async () => {
     try {
       const fetchedData = await overlayData();
       setOverlay(fetchedData);
+      fetchPins();
     } catch (error) {
       setErrorFetching("Error fetching overlay data:" + error);
+    }
+  };
+
+  const fetchPins = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3232/getPins"
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+      const pinsJson = await response.json();
+      if (pinsJson.response_type == "error") {
+        throw new Error(pinsJson.error);
+      }
+      const pinsStrings = pinsJson.pins;
+      const pins = pinsStrings.map((pin: string[]) => ({
+        lat: parseFloat(pin[0]),
+        lng: parseFloat(pin[1]),
+      }));
+      setMarkers(pins);
+      setErrorFetching("");
+    } catch (error) {
+      setErrorFetching("Error fetching pins data:" + error);
     }
   };
 
@@ -64,8 +89,20 @@ function App() {
     }
   };
 
-  const clearPins = () => {
-    setMarkers([]);
+  const clearPins = async () => {
+    try {
+      const response = await fetch("http://localhost:3232/clearPins?uid=" + USER_ID);
+      if (!response.ok) {
+        throw new Error("Failed to clear pins");
+      }
+      const resp = await response.json();
+      if (resp.response_type == "error") {
+        throw new Error(resp.error);
+      }
+      fetchPins();
+    } catch (error) {
+      setErrorFetching("Error clearing pins data:" + error);
+    }
   };
 
   return (
@@ -111,9 +148,9 @@ function App() {
           {errorFetching && <div>{errorFetching}</div>}
           <div>
             <button onClick={() => fetchData()}>Restart redlining</button>
-            <button onClick={clearPins}>Clear pins</button>
+            <button onClick={() => clearPins}>Clear pins</button>
           </div>
-          <Mapbox markers={markers} setMarkers={setMarkers} overlay={overlay} />
+          <Mapbox markers={markers} setMarkers={setMarkers} overlay={overlay} setErrorFetching={setErrorFetching} user={USER_ID}/>
         </div>
       </SignedIn>
     </div>
