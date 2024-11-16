@@ -89,10 +89,10 @@ export default function Mapbox(props: markerProps) {
   const addPins = async (ltd : string, lng : string) => {
     try {
       const response = await fetch(
-        "http://localhost:3232/addPins?uid=" + props.user + "&ltd=" + ltd + "&lng=" + lng
+        "http://localhost:3232/addPin?uid=" + props.user + "&ltd=" + ltd + "&lng=" + lng
       );
       if (!response.ok) {
-        throw new Error("Failed to clear pins");
+        throw new Error("Failed to add pins");
       }
       const resp = await response.json();
       if (resp.response_type == "error") {
@@ -100,7 +100,7 @@ export default function Mapbox(props: markerProps) {
       }
       fetchPins();
     } catch (error) {
-      props.setErrorFetching("Error clearing pins data:" + error);
+      props.setErrorFetching("Error adding pins data:" + error);
     }
   };
 

@@ -13,20 +13,14 @@ import { overlayData } from "../utils/overlay";
 
 function App() {
 
-  const { user } = useUser();
-
-  if (!user) {
-    return <div>Loading...</div>;
-  }
-
-  const USER_ID = user.id;
-
   const [keyword, setKeyword] = useState("");
   const [errorFetching, setErrorFetching] = useState("");
   const [overlay, setOverlay] = useState<GeoJSON.FeatureCollection | undefined>(
     undefined
   );
   const [markers, setMarkers] = useState<{ lat: number; lng: number }[]>([]);
+  const [userId, setUserId] = useState<string>("");
+  const { user } = useUser();
 
   const fetchData = async () => {
     try {
@@ -64,7 +58,8 @@ function App() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    if (user) setUserId(user.id);
+  }, [user]);
 
   const fetchOverlay = async () => {
     if (keyword == "") {
@@ -91,7 +86,9 @@ function App() {
 
   const clearPins = async () => {
     try {
-      const response = await fetch("http://localhost:3232/clearPins?uid=" + USER_ID);
+      const response = await fetch(
+        "http://localhost:3232/clearPins?uid=" + userId
+      );
       if (!response.ok) {
         throw new Error("Failed to clear pins");
       }
@@ -148,9 +145,9 @@ function App() {
           {errorFetching && <div>{errorFetching}</div>}
           <div>
             <button onClick={() => fetchData()}>Restart redlining</button>
-            <button onClick={() => clearPins}>Clear pins</button>
+            <button onClick={() => clearPins()}>Clear pins</button>
           </div>
-          <Mapbox markers={markers} setMarkers={setMarkers} overlay={overlay} setErrorFetching={setErrorFetching} user={USER_ID}/>
+          <Mapbox markers={markers} setMarkers={setMarkers} overlay={overlay} setErrorFetching={setErrorFetching} user={userId}/>
         </div>
       </SignedIn>
     </div>
