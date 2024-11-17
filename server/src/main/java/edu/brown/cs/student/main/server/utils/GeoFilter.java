@@ -1,8 +1,8 @@
-package edu.brown.cs.student.main.server.handlers;
+package edu.brown.cs.student.main.server.utils;
 
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMap.GeoMap;
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMap.Geometry;
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMapCollection;
+import edu.brown.cs.student.main.server.mapCollection.GeoMap.GeoMap;
+import edu.brown.cs.student.main.server.mapCollection.GeoMap.fields.Geometry;
+import edu.brown.cs.student.main.server.mapCollection.GeoMapCollection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

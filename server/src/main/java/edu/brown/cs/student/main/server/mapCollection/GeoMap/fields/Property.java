@@ -1,5 +1,6 @@
-package edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMap;
+package edu.brown.cs.student.main.server.mapCollection.GeoMap.fields;
 
+import edu.brown.cs.student.main.server.mapCollection.GeoMap.GeoMap;
 import java.util.Map;
 
 public class Property extends GeoMap {

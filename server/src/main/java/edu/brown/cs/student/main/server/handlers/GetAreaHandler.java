@@ -1,7 +1,9 @@
 package edu.brown.cs.student.main.server.handlers;
 
-import edu.brown.cs.student.main.server.parserParameterizedTypes.GeoMapAdapter;
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMapCollection;
+import edu.brown.cs.student.main.server.mapCollection.GeoMapCollection;
+import edu.brown.cs.student.main.server.utils.GeoFilter;
+import edu.brown.cs.student.main.server.utils.GeoMapAdapter;
+import edu.brown.cs.student.main.server.utils.Utils;
 import java.util.HashMap;
 import java.util.Map;
 import spark.Request;

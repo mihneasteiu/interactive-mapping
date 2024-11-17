@@ -1,6 +1,6 @@
-package edu.brown.cs.student.main.server.parserParameterizedTypes;
+package edu.brown.cs.student.main.server.utils;
 
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMapCollection;
+import edu.brown.cs.student.main.server.mapCollection.GeoMapCollection;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;

@@ -1,0 +1,47 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "neighborhood1",
+        "area_description_data": {
+          "desc": "keyword1"
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-70.5, 40.5],
+            [-70.5, 41.0],
+            [-70.0, 41.0],
+            [-70.0, 40.5],
+            [-70.5, 40.5]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "neighborhood2",
+        "area_description_data": {
+          "desc": "keyword2"
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-70.6, 40.6],
+            [-70.6, 41.1],
+            [-70.1, 41.1],
+            [-70.1, 40.6],
+            [-70.6, 40.6]
+          ]
+        ]
+      }
+    }
+  ]
+}

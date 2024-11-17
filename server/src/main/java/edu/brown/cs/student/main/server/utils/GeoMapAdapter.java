@@ -1,14 +1,14 @@
-package edu.brown.cs.student.main.server.parserParameterizedTypes;
+package edu.brown.cs.student.main.server.utils;
 
 import com.squareup.moshi.FromJson;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.ToJson;
 import com.squareup.moshi.Types;
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMap.GeoMap;
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMap.Geometry;
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMap.Property;
-import edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMapCollection;
+import edu.brown.cs.student.main.server.mapCollection.GeoMap.GeoMap;
+import edu.brown.cs.student.main.server.mapCollection.GeoMap.fields.Geometry;
+import edu.brown.cs.student.main.server.mapCollection.GeoMap.fields.Property;
+import edu.brown.cs.student.main.server.mapCollection.GeoMapCollection;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;

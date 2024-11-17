@@ -1,4 +1,7 @@
-package edu.brown.cs.student.main.server.parserParameterizedTypes.MapCollection.GeoMap;
+package edu.brown.cs.student.main.server.mapCollection.GeoMap;
+
+import edu.brown.cs.student.main.server.mapCollection.GeoMap.fields.Geometry;
+import edu.brown.cs.student.main.server.mapCollection.GeoMap.fields.Property;
 
 public class GeoMap {
   public String type;
