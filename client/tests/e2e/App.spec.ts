@@ -5,7 +5,6 @@ import {
   setupClerkTestingToken,
 } from "@clerk/testing/playwright";
 
-
 /*test.beforeEach(async ({ page }) => {
   await clerkSetup;
   await setupClerkTestingToken({
@@ -22,7 +21,6 @@ import {
     },
   });
 });*/
-
 
 test("I see the basic labels when I open the project", async ({ page }) => {
   await signInUser(
@@ -54,8 +52,8 @@ test("I see the pins on load, mocked", async ({ page }) => {
       contentType: "application/json",
       body: JSON.stringify({
         pins: [
-          ["23","23"],
-          ["24","24"]
+          ["23", "23"],
+          ["24", "24"],
         ],
       }),
     });
@@ -101,26 +99,26 @@ test("Pins persist after redlining restart", async ({ page }) => {
   // Get initial pin count
   const pins = await page.locator("img[alt='pin']");
   const initialPinCount = await pins.count();
-  
+
   // Add a new pin
   const map = await page.locator(".map");
   await map.click({ position: { x: 200, y: 200 } });
-  
+
   // Verify pin was added
   await expect(pins).toHaveCount(initialPinCount + 1);
-  
+
   // Click restart button
   const restartButton = page.getByRole("button", { name: "Restart redlining" });
   await restartButton.click();
-  
+
   // Wait for network requests to complete
   await page.waitForLoadState("networkidle");
-  
+
   // Verify pins are still present after restart
   await expect(pins).toHaveCount(initialPinCount + 1);
 });
 
-test("Error shows up when searching for empty keyword", async ({page}) => {
+test("Error shows up when searching for empty keyword", async ({ page }) => {
   await signInUser(
     page,
     process.env.E2E_CLERK_USER_USERNAME1!,
@@ -131,13 +129,16 @@ test("Error shows up when searching for empty keyword", async ({page}) => {
 
   // Wait for error message
   await expect(page.getByText("Please")).toBeVisible();
-})
+});
 
 test("Error message appears when restart fails", async ({ page }) => {
-  await page.route('**/getData*', async route => {
+  await page.route("**/getData*", async (route) => {
     await route.fulfill({
       status: 404,
-      body: JSON.stringify({ response_type: 'error', error: 'Failed to fetch overlay data' })
+      body: JSON.stringify({
+        response_type: "error",
+        error: "Failed to fetch overlay data",
+      }),
     });
   });
   await signInUser(
@@ -148,22 +149,24 @@ test("Error message appears when restart fails", async ({ page }) => {
   // Click restart button
   const restartButton = page.getByRole("button", { name: "Restart redlining" });
   await restartButton.click();
-  
+
   // Wait for error message
   await expect(page.getByText(/Error fetching overlay data/)).toBeVisible();
 });
 
-test.describe('Multi-user Pin Visibility', () => {
-  test('pins should be visible across different user sessions', async ({ browser }) => {
+test.describe("Multi-user Pin Visibility", () => {
+  test("pins should be visible across different user sessions", async ({
+    browser,
+  }) => {
     // Create two browser contexts for two different users
     const userContext1 = await browser.newContext();
     const userContext2 = await browser.newContext();
-    
+
     const page1 = await userContext1.newPage();
     const page2 = await userContext2.newPage();
 
     await signInUser(
-      page1, 
+      page1,
       process.env.E2E_CLERK_USER_USERNAME1,
       process.env.E2E_CLERK_USER_PASSWORD1
     );
@@ -178,14 +181,14 @@ test.describe('Multi-user Pin Visibility', () => {
     // Get initial pin count for both users
     const initialPins1 = await page1.locator("img[alt='pin']").count();
     const initialPins2 = await page2.locator("img[alt='pin']").count();
-    
+
     // Verify both users see the same initial pins
     expect(initialPins1).toBe(initialPins2);
 
     // User 1 adds a pin
     const map1 = await page1.locator(".map");
     await map1.click({ position: { x: 200, y: 200 } });
-    
+
     // Wait for network requests to complete
     await page1.waitForLoadState("networkidle");
     await page2.waitForLoadState("networkidle");
@@ -203,7 +206,7 @@ test.describe('Multi-user Pin Visibility', () => {
     // Test clearing pins
     const clearPinsButton = page1.getByRole("button", { name: "Clear pins" });
     await clearPinsButton.click();
-    
+
     // Wait for network requests to complete
     await page1.waitForLoadState("networkidle");
     await page2.waitForLoadState("networkidle");
@@ -222,7 +225,32 @@ test.describe('Multi-user Pin Visibility', () => {
     await userContext1.close();
     await userContext2.close();
   });
-})
+  test("Error message appears for incorrect username or password", async ({
+    page,
+  }) => {
+    await clerkSetup;
+    await setupClerkTestingToken({
+      page,
+    });
+
+    // Navigate to the login page
+    await page.goto("http://localhost:8000/");
+    await clerk.loaded({ page });
+
+    // Attempt to sign in with incorrect credentials
+    await clerk.signIn({
+      page,
+      signInParams: {
+        strategy: "password",
+        password: "wrongpassword",
+        identifier: "wrongusername",
+      },
+    });
+
+    // Wait for the error message
+    await expect(page.getByText(/Invalid username or password/i)).toBeVisible();
+  });
+});
 
 async function signInUser(page, username, password) {
   await clerkSetup;
