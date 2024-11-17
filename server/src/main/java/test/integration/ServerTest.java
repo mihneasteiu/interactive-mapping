@@ -4,26 +4,38 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.squareup.moshi.*;
 import edu.brown.cs.student.main.server.handlers.AddPinHandler;
-import edu.brown.cs.student.main.server.handlers.ListPinsHandler;
 import edu.brown.cs.student.main.server.handlers.ClearPinsHandler;
+import edu.brown.cs.student.main.server.handlers.ListPinsHandler;
 import edu.brown.cs.student.main.server.storage.FirebaseUtilities;
 import edu.brown.cs.student.main.server.storage.StorageInterface;
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
 import okio.Buffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import spark.Spark;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.*;
-
+/**
+ * Integration tests for the server functionality, including adding, listing, and clearing pins.
+ * This test suite ensures that the server behaves as expected for various edge cases
+ * and typical use cases.
+ */
 public class ServerTest {
 
-  private final Type mapStringObject = Types.newParameterizedType(Map.class, String.class, Object.class);
+  private final Type mapStringObject =
+      Types.newParameterizedType(Map.class, String.class, Object.class);
   private JsonAdapter<Map<String, Object>> adapter;
 
+  /**
+   * Sets up the server and handlers before each test.
+   * Initializes Moshi for JSON parsing and maps routes to handlers.
+   * The server is ready to handle requests for adding, listing, and clearing pins.
+   * 
+   * @throws IOException if there is an error starting the server or initializing handlers
+   */
   @BeforeEach
   public void setup() throws IOException {
     // Start Spark server before each test
@@ -45,6 +57,13 @@ public class ServerTest {
     Spark.awaitInitialization();
   }
 
+  /**
+   * Sends a request to the server and returns the resulting HttpURLConnection.
+   * 
+   * @param apiCall the API endpoint to be called
+   * @return an HttpURLConnection for the given API call
+   * @throws IOException if there is an error connecting to the server
+   */
   private HttpURLConnection tryRequest(String apiCall) throws IOException {
     URL requestURL = new URL("http://localhost:" + Spark.port() + "/" + apiCall);
     HttpURLConnection connection = (HttpURLConnection) requestURL.openConnection();
@@ -54,14 +73,21 @@ public class ServerTest {
     return connection;
   }
 
+  /**
+   * Tests the functionality of adding a pin and listing the pins.
+   * Verifies that a pin can be added, listed, and that clearing pins works as expected.
+   * 
+   * @throws IOException if there is an error making the HTTP requests
+   */
   @Test
   public void testAddPinAndListPins() throws IOException {
     // Step 1: Add a pin
     String addPinUrl = "addPin?uid=mishoo&ltd=23&lng=3";
     HttpURLConnection addPinConnection = tryRequest(addPinUrl);
-    assertEquals(200, addPinConnection.getResponseCode());  // Ensure the response is 200 OK
+    assertEquals(200, addPinConnection.getResponseCode()); // Ensure the response is 200 OK
 
-    Map<String, Object> addPinResponseBody = adapter.fromJson(new Buffer().readFrom(addPinConnection.getInputStream()));
+    Map<String, Object> addPinResponseBody =
+        adapter.fromJson(new Buffer().readFrom(addPinConnection.getInputStream()));
     assertEquals("success", addPinResponseBody.get("response_type"));
     assertEquals("latitude: 23, longitude: 3", addPinResponseBody.get("pin"));
 
@@ -70,9 +96,10 @@ public class ServerTest {
     // Step 2: List pins to verify the pin has been added
     String listPinsUrl = "listPins";
     HttpURLConnection listPinsConnection = tryRequest(listPinsUrl);
-    assertEquals(200, listPinsConnection.getResponseCode());  // Ensure the response is 200 OK
+    assertEquals(200, listPinsConnection.getResponseCode()); // Ensure the response is 200 OK
 
-    Map<String, Object> listPinsResponseBody = adapter.fromJson(new Buffer().readFrom(listPinsConnection.getInputStream()));
+    Map<String, Object> listPinsResponseBody =
+        adapter.fromJson(new Buffer().readFrom(listPinsConnection.getInputStream()));
     assertTrue(listPinsResponseBody.containsKey("pins"));
     List<Map<String, Object>> pins = (List<Map<String, Object>>) listPinsResponseBody.get("pins");
     assertEquals(1, pins.size()); // One pin has been added
@@ -86,9 +113,10 @@ public class ServerTest {
     // Step 3: Clear all pins
     String clearPinsUrl = "clearPins?uid=mishoo";
     HttpURLConnection clearPinsConnection = tryRequest(clearPinsUrl);
-    assertEquals(200, clearPinsConnection.getResponseCode());  // Ensure the response is 200 OK
+    assertEquals(200, clearPinsConnection.getResponseCode()); // Ensure the response is 200 OK
 
-    Map<String, Object> clearPinsResponseBody = adapter.fromJson(new Buffer().readFrom(clearPinsConnection.getInputStream()));
+    Map<String, Object> clearPinsResponseBody =
+        adapter.fromJson(new Buffer().readFrom(clearPinsConnection.getInputStream()));
     assertEquals("success", clearPinsResponseBody.get("response_type"));
     assertEquals("All pins cleared for user: mishoo", clearPinsResponseBody.get("message"));
 
@@ -96,16 +124,25 @@ public class ServerTest {
 
     // Step 4: List pins again to verify all pins have been cleared
     HttpURLConnection listPinsAfterClearConnection = tryRequest(listPinsUrl);
-    assertEquals(200, listPinsAfterClearConnection.getResponseCode());  // Ensure the response is 200 OK
+    assertEquals(
+        200, listPinsAfterClearConnection.getResponseCode()); // Ensure the response is 200 OK
 
-    Map<String, Object> listPinsAfterClearResponseBody = adapter.fromJson(new Buffer().readFrom(listPinsAfterClearConnection.getInputStream()));
+    Map<String, Object> listPinsAfterClearResponseBody =
+        adapter.fromJson(new Buffer().readFrom(listPinsAfterClearConnection.getInputStream()));
     assertTrue(listPinsAfterClearResponseBody.containsKey("pins"));
-    List<Map<String, Object>> clearedPins = (List<Map<String, Object>>) listPinsAfterClearResponseBody.get("pins");
+    List<Map<String, Object>> clearedPins =
+        (List<Map<String, Object>>) listPinsAfterClearResponseBody.get("pins");
     assertEquals(0, clearedPins.size()); // No pins should remain after clearing
 
     listPinsAfterClearConnection.disconnect();
   }
 
+  /**
+   * Tests adding multiple pins and clearing them. Verifies that multiple pins can be added
+   * and subsequently cleared.
+   * 
+   * @throws IOException if there is an error making the HTTP requests
+   */
   @Test
   public void testAddMultiplePinsThenClearPins() throws IOException {
     // Step 1: Add two pins
@@ -124,7 +161,8 @@ public class ServerTest {
     HttpURLConnection listPinsConnection = tryRequest(listPinsUrl);
     assertEquals(200, listPinsConnection.getResponseCode());
 
-    Map<String, Object> listPinsResponseBody = adapter.fromJson(new Buffer().readFrom(listPinsConnection.getInputStream()));
+    Map<String, Object> listPinsResponseBody =
+        adapter.fromJson(new Buffer().readFrom(listPinsConnection.getInputStream()));
     List<Map<String, Object>> pins = (List<Map<String, Object>>) listPinsResponseBody.get("pins");
     assertEquals(2, pins.size()); // Two pins have been added
 
@@ -135,7 +173,8 @@ public class ServerTest {
     HttpURLConnection clearPinsConnection = tryRequest(clearPinsUrl);
     assertEquals(200, clearPinsConnection.getResponseCode());
 
-    Map<String, Object> clearPinsResponseBody = adapter.fromJson(new Buffer().readFrom(clearPinsConnection.getInputStream()));
+    Map<String, Object> clearPinsResponseBody =
+        adapter.fromJson(new Buffer().readFrom(clearPinsConnection.getInputStream()));
     assertEquals("success", clearPinsResponseBody.get("response_type"));
     assertEquals("All pins cleared for user: mishoo", clearPinsResponseBody.get("message"));
 
@@ -145,13 +184,21 @@ public class ServerTest {
     HttpURLConnection listPinsAfterClearConnection = tryRequest(listPinsUrl);
     assertEquals(200, listPinsAfterClearConnection.getResponseCode());
 
-    Map<String, Object> listPinsAfterClearResponseBody = adapter.fromJson(new Buffer().readFrom(listPinsAfterClearConnection.getInputStream()));
-    List<Map<String, Object>> clearedPins = (List<Map<String, Object>>) listPinsAfterClearResponseBody.get("pins");
+    Map<String, Object> listPinsAfterClearResponseBody =
+        adapter.fromJson(new Buffer().readFrom(listPinsAfterClearConnection.getInputStream()));
+    List<Map<String, Object>> clearedPins =
+        (List<Map<String, Object>>) listPinsAfterClearResponseBody.get("pins");
     assertEquals(0, clearedPins.size());
 
     listPinsAfterClearConnection.disconnect();
   }
 
+  /**
+   * Tests the scenario where pins are cleared when no pins exist and verifies that
+   * the response is handled correctly.
+   * 
+   * @throws IOException if there is an error making the HTTP requests
+   */
   @Test
   public void testClearPinsThenListPins() throws IOException {
     // Step 1: Clear pins when no pins exist
@@ -159,24 +206,33 @@ public class ServerTest {
     HttpURLConnection clearPinsConnection = tryRequest(clearPinsUrl);
     assertEquals(200, clearPinsConnection.getResponseCode());
 
-    Map<String, Object> clearPinsResponseBody = adapter.fromJson(new Buffer().readFrom(clearPinsConnection.getInputStream()));
+    Map<String, Object> clearPinsResponseBody =
+        adapter.fromJson(new Buffer().readFrom(clearPinsConnection.getInputStream()));
     assertEquals("success", clearPinsResponseBody.get("response_type"));
     assertEquals("No pins found for user: mishoo", clearPinsResponseBody.get("message"));
 
     clearPinsConnection.disconnect();
 
-    // Step 2: List pins to verify the response is empty
+    // Step 2: List pins to verify that no pins exist
     String listPinsUrl = "listPins";
     HttpURLConnection listPinsConnection = tryRequest(listPinsUrl);
     assertEquals(200, listPinsConnection.getResponseCode());
 
-    Map<String, Object> listPinsResponseBody = adapter.fromJson(new Buffer().readFrom(listPinsConnection.getInputStream()));
-    List<Map<String, Object>> pins = (List<Map<String, Object>>) listPinsResponseBody.get("pins");
-    assertEquals(0, pins.size()); // No pins exist
+    Map<String, Object> listPinsResponseBody =
+        adapter.fromJson(new Buffer().readFrom(listPinsConnection.getInputStream()));
+    List<Map<String, Object>> pins =
+        (List<Map<String, Object>>) listPinsResponseBody.get("pins");
+    assertEquals(0, pins.size()); // No pins should exist
 
     listPinsConnection.disconnect();
   }
+}
 
+    /**
+   * Tests the scenario where pins are cleared for one user.
+   * 
+   * @throws IOException if there is an error making the HTTP requests
+   */
   @Test
   public void testClearPinsForOneUserThenListPinsForAll() throws IOException {
     // Step 1: Add a pin for user mishoo
@@ -196,7 +252,8 @@ public class ServerTest {
     HttpURLConnection clearPinsConnection = tryRequest(clearPinsUrl);
     assertEquals(200, clearPinsConnection.getResponseCode());
 
-    Map<String, Object> clearPinsResponseBody = adapter.fromJson(new Buffer().readFrom(clearPinsConnection.getInputStream()));
+    Map<String, Object> clearPinsResponseBody =
+        adapter.fromJson(new Buffer().readFrom(clearPinsConnection.getInputStream()));
     assertEquals("success", clearPinsResponseBody.get("response_type"));
     assertEquals("All pins cleared for user: mishoo", clearPinsResponseBody.get("message"));
 
@@ -207,14 +264,14 @@ public class ServerTest {
     HttpURLConnection listPinsConnection = tryRequest(listPinsUrl);
     assertEquals(200, listPinsConnection.getResponseCode());
 
-    Map<String, Object> listPinsResponseBody = adapter.fromJson(new Buffer().readFrom(listPinsConnection.getInputStream()));
+    Map<String, Object> listPinsResponseBody =
+        adapter.fromJson(new Buffer().readFrom(listPinsConnection.getInputStream()));
     List<Map<String, Object>> pins = (List<Map<String, Object>>) listPinsResponseBody.get("pins");
 
     // Verify that there is still one pin (george's pin) after clearing mishoo's pins
-    assertEquals(1, pins.size());  // Only george's pin should be present
-    assertEquals(24, pins.get(0).get("latitude"));  // Verify george's latitude
+    assertEquals(1, pins.size()); // Only george's pin should be present
+    assertEquals(24, pins.get(0).get("latitude")); // Verify george's latitude
 
     listPinsConnection.disconnect();
   }
-
 }

@@ -20,10 +20,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Provides utility methods for interacting with Firebase Firestore.
+ * Implements the {@link StorageInterface} to perform CRUD operations on Firestore data.
+ */
 public class FirebaseUtilities implements StorageInterface {
 
+  /**
+   * Initializes the Firebase application using the provided service account credentials.
+   * The Firebase config file is expected to be located in the "src/main/resources" directory.
+   * 
+   * @throws IOException If there is an issue reading the Firebase configuration file.
+   */
   public FirebaseUtilities() throws IOException {
-
     String workingDirectory = System.getProperty("user.dir");
     Path firebaseConfigPath =
         Paths.get(workingDirectory, "src", "main", "resources", "firebase_config.json");
@@ -38,6 +47,16 @@ public class FirebaseUtilities implements StorageInterface {
     FirebaseApp.initializeApp(options);
   }
 
+  /**
+   * Retrieves all documents from a specified collection for a given user.
+   * 
+   * @param uid The unique identifier of the user.
+   * @param collection_id The ID of the collection to retrieve.
+   * @return A list of maps, each representing a document in the collection.
+   * @throws InterruptedException If the thread is interrupted during execution.
+   * @throws ExecutionException If an error occurs during the retrieval of data.
+   * @throws IllegalArgumentException If the uid or collection_id is null.
+   */
   @Override
   public List<Map<String, Object>> getCollection(String uid, String collection_id)
       throws InterruptedException, ExecutionException, IllegalArgumentException {
@@ -45,16 +64,10 @@ public class FirebaseUtilities implements StorageInterface {
       throw new IllegalArgumentException("getCollection: uid and/or collection_id cannot be null");
     }
 
-    // gets all documents in the collection 'collection_id' for user 'uid'
-
     Firestore db = FirestoreClient.getFirestore();
-    // 1: Make the data payload to add to your collection
     CollectionReference dataRef = db.collection("users").document(uid).collection(collection_id);
-
-    // 2: Get pin documents
     QuerySnapshot dataQuery = dataRef.get().get();
 
-    // 3: Get data from document queries
     List<Map<String, Object>> data = new ArrayList<>();
     for (QueryDocumentSnapshot doc : dataQuery.getDocuments()) {
       data.add(doc.getData());
@@ -62,6 +75,15 @@ public class FirebaseUtilities implements StorageInterface {
     return data;
   }
 
+  /**
+   * Adds a new document to a specified collection for a given user.
+   * 
+   * @param uid The unique identifier of the user.
+   * @param collection_id The ID of the collection to add the document to.
+   * @param doc_id The ID of the document to add.
+   * @param data The data to store in the new document.
+   * @throws IllegalArgumentException If any of the input parameters are null.
+   */
   @Override
   public void addDocument(String uid, String collection_id, String doc_id, Map<String, Object> data)
       throws IllegalArgumentException {
@@ -84,18 +106,20 @@ public class FirebaseUtilities implements StorageInterface {
     System.out.println("Added document");
   }
 
-  // clears the collections inside of a specific user.
+  /**
+   * Clears all data associated with a specific user by removing their document and collections.
+   * 
+   * @param uid The unique identifier of the user whose data should be cleared.
+   * @throws IllegalArgumentException If the uid is null.
+   */
   @Override
   public void clearUser(String uid) throws IllegalArgumentException {
     if (uid == null) {
       throw new IllegalArgumentException("removeUser: uid cannot be null");
     }
     try {
-      // removes all data for user 'uid'
       Firestore db = FirestoreClient.getFirestore();
-      // 1: Get a ref to the user document
       DocumentReference userDoc = db.collection("users").document(uid);
-      // 2: Delete the user document
       deleteDocument(userDoc);
     } catch (Exception e) {
       System.err.println("Error removing user : " + uid);
@@ -103,37 +127,44 @@ public class FirebaseUtilities implements StorageInterface {
     }
   }
 
+  /**
+   * Recursively deletes a document and all its subcollections.
+   * 
+   * @param doc The document reference to delete.
+   */
   private void deleteDocument(DocumentReference doc) {
-    // for each subcollection, run deleteCollection()
     Iterable<CollectionReference> collections = doc.listCollections();
     for (CollectionReference collection : collections) {
       deleteCollection(collection);
     }
-    // then delete the document
     doc.delete();
   }
 
-  // recursively removes all the documents and collections inside a collection
-  // https://firebase.google.com/docs/firestore/manage-data/delete-data#collections
+  /**
+   * Recursively deletes all documents within a collection.
+   * 
+   * @param collection The collection reference to delete documents from.
+   */
   private void deleteCollection(CollectionReference collection) {
     try {
-
-      // get all documents in the collection
       ApiFuture<QuerySnapshot> future = collection.get();
       List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
-      // delete each document
       for (QueryDocumentSnapshot doc : documents) {
         doc.getReference().delete();
       }
-
-      // NOTE: the query to documents may be arbitrarily large. A more robust
-      // solution would involve batching the collection.get() call.
     } catch (Exception e) {
       System.err.println("Error deleting collection : " + e.getMessage());
     }
   }
 
+  /**
+   * Retrieves all pins across all users.
+   * 
+   * @return A list of maps representing all the pin data from every user.
+   * @throws InterruptedException If the thread is interrupted during execution.
+   * @throws ExecutionException If an error occurs during the retrieval of data.
+   */
   @Override
   public List<Map<String, Object>> getAllPins() throws InterruptedException, ExecutionException {
     List<String> data = new ArrayList<>();

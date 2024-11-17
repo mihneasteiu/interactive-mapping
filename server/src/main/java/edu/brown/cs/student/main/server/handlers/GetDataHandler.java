@@ -10,16 +10,43 @@ import spark.Request;
 import spark.Response;
 import spark.Route;
 
+/**
+ * A handler to retrieve geographic data filtered by a bounding box. This class processes the request,
+ * extracts the bounding box parameters (minLat, minLong, maxLat, maxLong), validates them, and returns
+ * the filtered data in JSON format based on the provided coordinates.
+ */
 public class GetDataHandler implements Route {
 
+  /**
+   * The collection of geographic map data.
+   */
   GeoMapCollection geomapCollection;
+  
+  /**
+   * The adapter used to convert the geographic map collection to JSON format.
+   */
   GeoMapAdapter geoMapAdapter;
 
+  /**
+   * Constructs a GetDataHandler with a given GeoMapCollection.
+   *
+   * @param geomapCollection The collection of geographic map data to be filtered.
+   */
   public GetDataHandler(GeoMapCollection geomapCollection) {
     this.geomapCollection = geomapCollection;
     this.geoMapAdapter = new GeoMapAdapter();
   }
 
+  /**
+   * Handles the HTTP request to retrieve data within a specified bounding box. It expects the bounding
+   * box coordinates (minLat, minLong, maxLat, maxLong) as query parameters. The method validates the 
+   * coordinates and returns filtered data if the parameters are valid, or an error message if any issues 
+   * are encountered.
+   *
+   * @param request The HTTP request object containing query parameters.
+   * @param response The HTTP response object.
+   * @return The filtered geographic map data in JSON format or an error message.
+   */
   @Override
   public Object handle(Request request, Response response) {
     Map<String, Object> responseMap = new HashMap<>();
@@ -79,13 +106,16 @@ public class GetDataHandler implements Route {
         return Utils.toMoshiJson(responseMap);
       }
 
+      // Filter the map collection using the bounding box coordinates
       GeoMapCollection collectionResult =
           GeoFilter.filterByBoundingBox(this.geomapCollection, minLong, maxLong, minLat, maxLat);
 
+      // Return the filtered data in JSON format
       return this.geoMapAdapter.toJson(collectionResult);
 
     } catch (Exception e) {
       e.printStackTrace();
+      // Return error response in case of an exception
       responseMap.put("response_type", "error");
       responseMap.put("error", e.getMessage());
       return Utils.toMoshiJson(responseMap);

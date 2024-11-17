@@ -7,16 +7,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Utility class for filtering GeoMapCollection objects based on various criteria,
+ * such as bounding box and keyword search.
+ */
 public class GeoFilter {
+  
   /**
-   * Filters GeoMaps where ALL coordinates are within a given bounding box
-   *
-   * @param collection Original GeoMapCollection
-   * @param minLon Minimum longitude
-   * @param maxLon Maximum longitude
-   * @param minLat Minimum latitude
-   * @param maxLat Maximum latitude
-   * @return New GeoMapCollection containing only features completely within the bounding box
+   * Filters a GeoMapCollection where ALL coordinates of the features are within the specified bounding box.
+   * 
+   * @param collection Original GeoMapCollection to filter.
+   * @param minLon Minimum longitude of the bounding box.
+   * @param maxLon Maximum longitude of the bounding box.
+   * @param minLat Minimum latitude of the bounding box.
+   * @param maxLat Maximum latitude of the bounding box.
+   * @return A new GeoMapCollection containing only the features completely within the bounding box.
    */
   public static GeoMapCollection filterByBoundingBox(
       GeoMapCollection collection, double minLon, double maxLon, double minLat, double maxLat) {
@@ -33,6 +38,13 @@ public class GeoFilter {
     return filteredCollection;
   }
 
+  /**
+   * Filters a GeoMapCollection by a keyword found in the area description data.
+   * 
+   * @param collection Original GeoMapCollection to filter.
+   * @param keyword The keyword to search for in the area description data.
+   * @return A new GeoMapCollection containing only the features that contain the keyword.
+   */
   public static GeoMapCollection filterByKeyword(GeoMapCollection collection, String keyword) {
     GeoMapCollection filteredCollection = new GeoMapCollection();
     filteredCollection.type = collection.type;
@@ -47,6 +59,13 @@ public class GeoFilter {
     return filteredCollection;
   }
 
+  /**
+   * Checks whether the GeoMap feature contains the specified keyword in its area description data.
+   * 
+   * @param feature The GeoMap feature to check.
+   * @param keyword The keyword to search for.
+   * @return True if the feature contains the keyword in its area description, false otherwise.
+   */
   private static boolean containsKeyword(GeoMap feature, String keyword) {
     if (feature == null || feature.properties == null) {
       return false;
@@ -60,6 +79,16 @@ public class GeoFilter {
     return false;
   }
 
+  /**
+   * Checks if a GeoMap feature is completely within the specified bounding box.
+   * 
+   * @param feature The GeoMap feature to check.
+   * @param minLon Minimum longitude of the bounding box.
+   * @param maxLon Maximum longitude of the bounding box.
+   * @param minLat Minimum latitude of the bounding box.
+   * @param maxLat Maximum latitude of the bounding box.
+   * @return True if all coordinates of the feature are within the bounding box, false otherwise.
+   */
   private static boolean isFeatureCompletelyInBoundingBox(
       GeoMap feature, double minLon, double maxLon, double minLat, double maxLat) {
     Geometry geometry = feature.getGeometry();
@@ -86,6 +115,17 @@ public class GeoFilter {
     return true;
   }
 
+  /**
+   * Checks if a given point (longitude, latitude) is within the specified bounding box.
+   * 
+   * @param lon The longitude of the point.
+   * @param lat The latitude of the point.
+   * @param minLon Minimum longitude of the bounding box.
+   * @param maxLon Maximum longitude of the bounding box.
+   * @param minLat Minimum latitude of the bounding box.
+   * @param maxLat Maximum latitude of the bounding box.
+   * @return True if the point is within the bounding box, false otherwise.
+   */
   private static boolean isPointInBoundingBox(
       double lon, double lat, double minLon, double maxLon, double minLat, double maxLat) {
     return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
