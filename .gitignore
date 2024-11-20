@@ -2,7 +2,7 @@
 .idea
 
 # Maven
-resources/
+server/src/main/resources/firebase_config.json
 target/
 .mvn
 .mvn-classpath
